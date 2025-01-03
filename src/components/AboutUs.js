@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import styled from "styled-components";
+import ImgSlider from "./ImgSlider";
+import Viewers from "./Viewers";
 
-const CustomMessage = (props) => {
+const AboutUs = (props) => {
   
     return (
       <Container>
-        <h3>Custome message</h3>
+        <ImgSlider />
+        <Viewers />
       </Container>
     );
   };
@@ -30,4 +33,4 @@ const CustomMessage = (props) => {
 `;
 
   
-export default CustomMessage;
+export default AboutUs;

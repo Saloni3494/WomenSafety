@@ -2,45 +2,43 @@ import styled from "styled-components";
 
 const Login = (props) => {
     return (
-    <Container>
-        <Content>
-            <CTA>
-                {/* <CTALogoOne src="/images/cta-logo-one.svg" alt=" " /> */}
-                <Description>
-                    Welcome to
-                </Description>
-                <SignUp>Empower Shield</SignUp>
-                <Description>
-                   Welcome to my project
-                </Description>
-                {/* <CTALogoTwo src="/images/cta-logo-two.png" alt=" "/> */}
-            </CTA>
-            <BgImage />
-        </Content>
-    </Container>
+        <Container>
+            <Content>
+                <CTA>
+                    {/* Image added here */}
+                    <HeaderImage src="/images/landing.png" alt="Header Image" />
+                    <br/>
+                    <Description>
+                        Welcome to
+                    </Description>
+                    <SignUp>Empower Shield</SignUp>
+                </CTA>
+                <BgImage />
+            </Content>
+        </Container>
     );
 };
 
 const Container = styled.section`
-overflow: hidden;
-display: flex;
-flex-direction: column;
-text-align: center;
-height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    height: 100vh;
 `;
 
 const Content = styled.div`
-margin-bottom: 10vm;
-width: 100%;
-position: relative;
-min-height: 100vh;
-box-sizing: border-box;
-display: flex;
-justify-content: center;
-align-item: center;
-flex-direction: column;
-padding: 80px 40px;
-height: 100%
+    margin-bottom: 10vm;
+    width: 100%;
+    position: relative;
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    padding: 80px 25px;
+    height: 100%;
 `;
 
 const BgImage = styled.div`
@@ -48,7 +46,7 @@ const BgImage = styled.div`
     background-position: top;
     background-size: cover;
     background-repeat: no-repeat;
-    background-image: url("/images/landing.jpg");
+    background-image: url("/images/home-background.png");
     position: absolute;
     top: 0;
     right: 0;
@@ -57,7 +55,6 @@ const BgImage = styled.div`
 `;
 
 const CTA = styled.div`
-    // margin-bottom: 2vw;
     max-width: 650px;
     flex-wrap: wrap;
     display: flex;
@@ -71,49 +68,47 @@ const CTA = styled.div`
     transition-timing-function: ease-out;
     transition: opacity 0.2s;
     width: 100%;
+    background: linear-gradient(135deg, #C30E59, #f9f9f9); /* Gradient background */
+    border-radius: 30px; /* Rounded corners */
+    padding: 40px; /* Add spacing inside */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Optional shadow for depth */
+    position: relative;
+    overflow: hidden; /* Ensures content stays within the curved section */
 `;
 
-const CTALogoOne = styled.img`
-    margin-bottom: 12px;
-    max-width: 600px;
-    min-height: 1px;
-    display: block;
-    width: 100%;
+
+const HeaderImage = styled.img`
+    max-width: 400px; /* Increased size */
+    width: 100%; /* Ensures responsiveness */
+    height: auto; /* Maintains aspect ratio */
+    margin-bottom: 20px; /* Add spacing below the image */
+    display: block; /* Centers the image */
 `;
 
-const SignUp = styled.a `
+const SignUp = styled.a`
     font-weight: bold;
     color: #f9f9f9;
-    background-color: #C30E59;
+    background-color:rgb(249, 58, 138);
     margin-bottom: 12px;
     width: 100%;
     letter-spacing: 1.5px;
-    font-size: 28px;
-    padding: 16.5px 0;
+    font-size: 30px;
+    padding: 16.5px 10px;
     border: 1px solid transparent;
-    border-radius: 4px;
+    border-radius: 20px;
 
-    &:hover  {
-        background-color:rgb(146, 10, 66);
+    &:hover {
+        background-color: rgba(231, 6, 100, 0.61);
     }
 `;
 
 const Description = styled.p`
-    color: rgb(0, 0, 0);
-    font-size: 20px;
+    color: #C30E59;
+    font-size: 28px;
     margin: 0 0 24px;
     line-height: 1.5;
     letter-spacing: 1.5px;
     font-weight: bold; /* Added for boldness */
-`;
-
-
-const CTALogoTwo = styled.img`
-    max-width: 600px;
-    margin-bottom: 20px;
-    display: inline-block;
-    vertical-align: bottom;
-    width: 100%;
 `;
 
 export default Login;

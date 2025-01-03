@@ -6,7 +6,6 @@ const Viewers = (props) => {
        <h5> The "Empower Shield" android application is designed to address 
       the safety concerns faced by women in various situations such as 
       harassment or threats. </h5>
-      <h3>Features We Provide:</h3>
       {/* <li>Emergency Call Function</li>
       <li>Emergency SMS with Live Coordinates</li> */}
       <Wrap>

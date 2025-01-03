@@ -1,9 +1,15 @@
 import { useEffect } from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { auth, provider } from "../firebase";
 import { Link } from 'react-router-dom';
+import "./Header.css";
+import { NavLink } from "react-router-dom";
+import { IoClose, IoMenu } from "react-icons/io5";
+
+
 import {
   selectUserName,
   selectUserPhoto,
@@ -17,6 +23,18 @@ const Header = (props) => {
   const userName = useSelector(selectUserName);
   const userPhoto = useSelector(selectUserPhoto);
 
+  const [showMenu, setShowMenu] = useState(false);
+
+  const toggleMenu = () => {
+    setShowMenu(!showMenu);
+  };
+
+  const closeMenuOnMobile = () => {
+    if (window.innerWidth <= 1150) {
+      setShowMenu(false);
+    }
+  };
+  
   useEffect(() => {
     auth.onAuthStateChanged(async (user) => {
       if (user) {
@@ -45,6 +63,7 @@ const Header = (props) => {
         })
         .catch((err) => alert(err.message));
     }
+    
   };
 
   const setUser = (user) => {
@@ -60,27 +79,68 @@ const Header = (props) => {
   return (
     <Nav>
       <Logo>
-        <img src="/images/logo.svg" alt="Disney"></img>
+        <img src="/images/logo.png" alt="Disney"></img>
       </Logo>
 
       {!userName ? (
         <Login onClick={handleAuth}>Login</Login>
       ) : (
         <>
-          <NavMenu>
-            <Link to="/home">
-              <img src="/images/home-icon.svg" alt="HOME" />
-              <span>HOME</span>
-            </Link>
-            <Link to="/contacts">
-              <img src="/images/watchlist-icon.svg" alt="WATCHLIST" />
-              <span>CONTACTS</span>
-            </Link>
-            <Link to="/customMessage">
-              <img src="/images/original-icon.svg" alt="ORIGINALS" />
-              <span>CUSTOM MESSAGE</span>
-            </Link>
-          </NavMenu>
+
+      <header className="header">
+        <nav className="nav container">
+          <div
+            className={`nav__menu ${showMenu ? "show-menu" : ""}`}
+            id="nav-menu"
+          >
+            <ul className="nav__list">
+              <li className="nav__item">
+                <NavLink to="/home" className="nav__link" onClick={closeMenuOnMobile}>
+                  Home
+                </NavLink>
+              </li>
+              <li className="nav__item">
+                <NavLink
+                  to="/contacts"
+                  className="nav__link"
+                  onClick={closeMenuOnMobile}
+                >
+                  Contacts
+                </NavLink>
+              </li>
+              <li className="nav__item">
+                <NavLink
+                  to="/customMessage"
+                  className="nav__link"
+                  onClick={closeMenuOnMobile}
+                >
+                  Custom Message
+                </NavLink>
+              </li>
+              <li className="nav__item">
+                <NavLink
+                  to="/aboutUs"
+                  className="nav__link"
+                  onClick={closeMenuOnMobile}
+                >
+                  About Us
+                </NavLink>
+              </li>
+            </ul>
+            <div className="nav__close" id="nav-close" onClick={toggleMenu}>
+              <IoClose />
+            </div>
+          </div>
+
+          <div className="nav__toggle" id="nav-toggle" onClick={toggleMenu}>
+            <IoMenu />
+          </div>
+        </nav>
+      </header>
+
+
+
+
           <SignOut>
             <UserImg src={userPhoto} alt={userName} />
             <DropDown>
@@ -103,7 +163,7 @@ const Nav = styled.nav`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 36px;
+  padding: 0 25px;
   letter-spacing: 16px;
   z-index: 3;
 `;
@@ -187,17 +247,19 @@ const NavMenu = styled.div`
 `;
 
 const Login = styled.a`
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgb(244, 232, 232);
   padding: 8px 16px;
   text-transform: uppercase;
   letter-spacing: 1.5px;
   border: 1px solid #f9f9f9;
   border-radius: 4px;
   transition: all 0.2s ease 0s;
+  color: #C30E59;
+  font-weight: bold;
 
   &:hover {
     background-color: #f9f9f9;
-    color: #000;
+    color: #C30E59;
     border-color: transparent;
   }
 `;
@@ -210,7 +272,7 @@ const DropDown = styled.div`
   position: absolute;
   top: 48px;
   right: 0px;
-  background: rgb(19, 19, 19);
+  background: rgb(244, 232, 232);
   border: 1px solid rgba(151, 151, 151, 0.34);
   border-radius: 4px;
   box-shadow: rgb(0 0 0 / 50%) 0px 0px 18px 0px;
