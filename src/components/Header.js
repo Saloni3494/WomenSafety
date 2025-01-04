@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import React, { useState } from "react";
 import styled from "styled-components";
 import { useDispatch, useSelector } from "react-redux";
@@ -7,8 +7,6 @@ import { auth, provider } from "../firebase";
 import { Link } from 'react-router-dom';
 import "./Header.css";
 import { NavLink } from "react-router-dom";
-import { IoClose, IoMenu } from "react-icons/io5";
-
 
 import {
   selectUserName,
@@ -24,6 +22,7 @@ const Header = (props) => {
   const userPhoto = useSelector(selectUserPhoto);
 
   const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef(null); // Ref for the menu box
 
   const toggleMenu = () => {
     setShowMenu(!showMenu);
@@ -34,7 +33,25 @@ const Header = (props) => {
       setShowMenu(false);
     }
   };
-  
+
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowMenu(false);
+      }
+    };
+
+    if (showMenu) {
+      document.addEventListener("mousedown", handleOutsideClick);
+    } else {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, [showMenu]);
+
   useEffect(() => {
     auth.onAuthStateChanged(async (user) => {
       if (user) {
@@ -63,7 +80,6 @@ const Header = (props) => {
         })
         .catch((err) => alert(err.message));
     }
-    
   };
 
   const setUser = (user) => {
@@ -78,68 +94,76 @@ const Header = (props) => {
 
   return (
     <Nav>
-      <Logo>
-        <img src="/images/logo.png" alt="Disney"></img>
-      </Logo>
+      <span className="siteLogo">
+        <img src="/images/logo.png" alt="Disney" />
+      </span>
 
       {!userName ? (
         <Login onClick={handleAuth}>Login</Login>
       ) : (
         <>
-
-      <header className="header">
-        <nav className="nav container">
-          <div
-            className={`nav__menu ${showMenu ? "show-menu" : ""}`}
-            id="nav-menu"
-          >
-            <ul className="nav__list">
-              <li className="nav__item">
-                <NavLink to="/home" className="nav__link" onClick={closeMenuOnMobile}>
-                  Home
-                </NavLink>
-              </li>
-              <li className="nav__item">
-                <NavLink
-                  to="/contacts"
-                  className="nav__link"
-                  onClick={closeMenuOnMobile}
+          <header className="header">
+            <nav className="nav container" ref={menuRef}>
+              <div
+                className={`nav__menu ${showMenu ? "show-menu" : ""}`}
+                id="nav-menu"
+              >
+                <ul className="nav__list">
+                  <li className="nav__item">
+                    <NavLink
+                      to="/home"
+                      className="nav__link"
+                      onClick={closeMenuOnMobile}
+                    >
+                      Home
+                    </NavLink>
+                  </li>
+                  <li className="nav__item">
+                    <NavLink
+                      to="/contacts"
+                      className="nav__link"
+                      onClick={closeMenuOnMobile}
+                    >
+                      Contacts
+                    </NavLink>
+                  </li>
+                  <li className="nav__item">
+                    <NavLink
+                      to="/customMessage"
+                      className="nav__link"
+                      onClick={closeMenuOnMobile}
+                    >
+                      Custom Message
+                    </NavLink>
+                  </li>
+                  <li className="nav__item">
+                    <NavLink
+                      to="/aboutUs"
+                      className="nav__link"
+                      onClick={closeMenuOnMobile}
+                    >
+                      About Us
+                    </NavLink>
+                  </li>
+                </ul>
+                <div
+                  className="nav__close"
+                  id="nav-close"
+                  onClick={toggleMenu}
                 >
-                  Contacts
-                </NavLink>
-              </li>
-              <li className="nav__item">
-                <NavLink
-                  to="/customMessage"
-                  className="nav__link"
-                  onClick={closeMenuOnMobile}
-                >
-                  Custom Message
-                </NavLink>
-              </li>
-              <li className="nav__item">
-                <NavLink
-                  to="/aboutUs"
-                  className="nav__link"
-                  onClick={closeMenuOnMobile}
-                >
-                  About Us
-                </NavLink>
-              </li>
-            </ul>
-            <div className="nav__close" id="nav-close" onClick={toggleMenu}>
-              <IoClose />
-            </div>
-          </div>
+                  <i className="fa-solid fa-xmark closeButton"></i>
+                </div>
+              </div>
 
-          <div className="nav__toggle" id="nav-toggle" onClick={toggleMenu}>
-            <IoMenu />
-          </div>
-        </nav>
-      </header>
-
-
-
+              <div
+                className="nav__toggle hamburger"
+                id="nav-toggle"
+                onClick={toggleMenu}
+              >
+                <i className="fa-solid fa-bars"></i>
+              </div>
+            </nav>
+          </header>
 
           <SignOut>
             <UserImg src={userPhoto} alt={userName} />
@@ -164,86 +188,9 @@ const Nav = styled.nav`
   justify-content: space-between;
   align-items: center;
   padding: 0 25px;
-  letter-spacing: 16px;
+  letter-spacing: 5px;
+  font-weight: bold;
   z-index: 3;
-`;
-
-const Logo = styled.a`
-  padding: 0;
-  width: 80px;
-  margin-top: 4px;
-  max-height: 70px;
-  font-size: 0;
-  display: inline-block;
-  img {
-    display: block;
-    width: 100%;
-  }
-`;
-
-const NavMenu = styled.div`
-  align-items: center;
-  display: flex;
-  flex-flow: row nowrap;
-  height: 100%;
-  justify-content: flex-end;
-  margin: 0px;
-  padding: 0px;
-  position: relative;
-  margin-right: auto;
-  margin-left: 25px;
-
-  a {
-    display: flex;
-    align-items: center;
-    padding: 0 12px;
-
-    img {
-      height: 20px;
-      min-width: 20px;
-      width: 20px;
-      z-index: auto;
-    }
-
-    span {
-      color: rgb(249, 249, 249);
-      font-size: 13px;
-      letter-spacing: 1.42px;
-      line-height: 1.08;
-      padding: 2px 0px;
-      white-space: nowrap;
-      position: relative;
-
-      &:before {
-        background-color: rgb(249, 249, 249);
-        border-radius: 0px 0px 4px 4px;
-        bottom: -6px;
-        content: "";
-        height: 2px;
-        left: 0px;
-        opacity: 0px;
-        position: absolute;
-        right: 0px;
-        transform-origin: left center;
-        transform: scaleX(0);
-        transition: all 250ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s;
-        visibility: hidden;
-        width: auto;
-      }
-    }
-
-    &:hover {
-      span:before {
-        transform: scaleX(1);
-        visibility: visible;
-        opacity: 1 !important;
-      }
-    }
-  }
-
-  //    @media (max-width: 768px) {
-  //     display: none;
-  //    }
 `;
 
 const Login = styled.a`
@@ -277,7 +224,7 @@ const DropDown = styled.div`
   border-radius: 4px;
   box-shadow: rgb(0 0 0 / 50%) 0px 0px 18px 0px;
   padding: 9px;
-  font-size: 14px;
+  font-size: 13px;
   letter-spacing: 3px;
   width: 100px;
   opacity: 0;

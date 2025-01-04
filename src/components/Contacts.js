@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import axios from "axios";
+import React, { useState, useEffect } from 'react';
 import styled from "styled-components";
 
 const Contacts = () => {
+    const [contacts, setContacts] = useState([]);
     const [showForm, setShowForm] = useState(false);
     const [formType, setFormType] = useState('');  // New state to track form type
     const [formData, setFormData] = useState({
@@ -12,10 +14,19 @@ const Contacts = () => {
         message: "", // For the message form
     });
 
-    const [contacts, setContacts] = useState([
-        { id: 1, name: "Friend 1", phone: "1234567890", isSms: true, isCall: false, isEditing: false },
-        { id: 2, name: "Friend 2", phone: "9876543210", isSms: false, isCall: true, isEditing: false },
-    ]);
+     // Fetch contacts from the backend
+     useEffect(() => {
+        const fetchContacts = async () => {
+            try {
+                const response = await axios.get("http://localhost:5000/contacts");
+                setContacts(response.data);
+            } catch (error) {
+                console.error("Error fetching contacts:", error);
+            }
+        };
+
+        fetchContacts();
+    }, []);
 
     const handleInputChange = (e, id) => {
         const { name, value, type, checked } = e.target;
@@ -35,15 +46,72 @@ const Contacts = () => {
             )
         );
     };
+    
 
-    const handleFormSubmit = (e) => {
+    const handleSave = async (contact) => {
+        try {
+            const { id, name, phone, isSms, isCall } = contact;
+            
+            console.log("Sending PUT request with data:", { name, phone, isSms, isCall });
+    
+            const response = await axios.put(`http://localhost:5000/contacts/${id}`, {
+                name,
+                phone,
+                isSms,
+                isCall
+            });
+    
+            if (response.status === 200) {
+                alert("Contact updated successfully!");
+                setContacts((prevContacts) =>
+                    prevContacts.map((contactItem) =>
+                        contactItem.id === id
+                            ? { ...contactItem, isEditing: false, name, phone, isSms, isCall }
+                            : contactItem
+                    )
+                );
+            } else {
+                alert("Error updating contact.");
+            }
+        } catch (error) {
+            console.error("Failed to update contact:", error);
+            alert("Error updating contact.");
+        }
+    };
+    
+    
+    
+
+    const handleFormSubmit = async (e) => {
         e.preventDefault();
-        console.log("Form Data Submitted: ", formData);
-        setShowForm(false);
+        try {
+            const response = await axios.post("http://localhost:5000/add-contact", formData);
+            
+            // Update contacts state with the new contact
+            setContacts((prevContacts) => [...prevContacts, response.data]);
+    
+            // Reset the form data and close the form
+            setFormData({
+                name: "",
+                phone: "",
+                isSms: false,
+                isCall: false,
+                message: "",
+            });
+            setShowForm(false);
+        } catch (error) {
+            console.error("Failed to add contact:", error);
+        }
     };
 
-    const handleDelete = (id) => {
-        setContacts((prevContacts) => prevContacts.filter((contact) => contact.id !== id));
+    const handleDelete = async (id) => {
+        try {
+            await axios.delete(`http://localhost:5000/contacts/${id}`);
+            setContacts((prevContacts) => prevContacts.filter((contact) => contact.id !== id));
+            alert("Contact deleted successfully!");
+        } catch (error) {
+            console.error("Failed to delete contact:", error);
+        }
     };
 
     return (
@@ -218,10 +286,17 @@ const Contacts = () => {
                                 />
                             </td>
                             <td class="centerAlign">
-                                <i
-                                    className={`fa-solid ${contact.isEditing ? "fa-save" : "fa-pen"}`}
-                                    onClick={() => toggleEdit(contact.id)}
-                                ></i>
+                                {contact.isEditing ? (
+                                        <i
+                                            className="fa-solid fa-save"
+                                            onClick={() => handleSave(contact)}
+                                        ></i>
+                                    ) : (
+                                        <i
+                                            className="fa-solid fa-pen"
+                                            onClick={() => toggleEdit(contact.id)}
+                                        ></i>
+                                )}
                             </td>
                             <td class="centerAlign">
                                 <i className="fa-solid fa-trash"
