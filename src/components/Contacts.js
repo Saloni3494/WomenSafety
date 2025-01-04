@@ -3,11 +3,13 @@ import styled from "styled-components";
 
 const Contacts = () => {
     const [showForm, setShowForm] = useState(false);
+    const [formType, setFormType] = useState('');  // New state to track form type
     const [formData, setFormData] = useState({
         name: "",
         phone: "",
         isSms: false,
         isCall: false,
+        message: "", // For the message form
     });
 
     const [contacts, setContacts] = useState([
@@ -40,6 +42,10 @@ const Contacts = () => {
         setShowForm(false);
     };
 
+    const handleDelete = (id) => {
+        setContacts((prevContacts) => prevContacts.filter((contact) => contact.id !== id));
+    };
+
     return (
         <Container>
             <CTA>
@@ -47,71 +53,107 @@ const Contacts = () => {
                 <HeaderImage src="/images/contacts-1.png" alt="Header Image" />
             </CTA>
 
-            <div className="addContact" onClick={() => setShowForm(true)}>
-                <i className="fa-solid fa-square-plus"></i>
-                <span className="contactLabel">Add Contact</span>
+            <div className="addContact addMessage" onClick={() => { setShowForm(true); setFormType('message'); }}>
+                <button type="button" class="btn btn-success">
+                    <i className="fa-solid fa-edit"></i>
+                    <span className="contactLabel boldTitle">Message</span>
+                </button>
+            </div>
+
+            <div className="addContact" onClick={() => { setShowForm(true); setFormType('contact'); }}>
+                <button type="button" class="btn btn-success">
+                    <i className="fa-solid fa-square-plus"></i>
+                    <span className="contactLabel boldTitle">Add Contact</span>
+                </button>
             </div>
 
             {showForm && (
                 <FormOverlay>
                     <FormContainer>
-                        <h2>Add Contact</h2>
-                        <form onSubmit={handleFormSubmit}>
-                            <label>
-                                Name:
-                                <input
-                                    type="text"
-                                    name="name"
-                                    value={formData.name}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, name: e.target.value })
-                                    }
-                                    required
-                                />
-                            </label>
-                            <label>
-                                Phone Number:
-                                <input
-                                    type="tel"
-                                    name="phone"
-                                    value={formData.phone}
-                                    onChange={(e) =>
-                                        setFormData({ ...formData, phone: e.target.value })
-                                    }
-                                    required
-                                />
-                            </label>
-                            <div>
-                                <label>
-                                SMS
-                                    <input
-                                        type="radio"
-                                        name="isSms"
-                                        checked={formData.isSms}
-                                        onChange={(e) =>
-                                            setFormData({ ...formData, isSms: e.target.checked })
-                                        }
-                                    />
-                                </label>
-                                <label>
-                                Call
-                                    <input
-                                        type="radio"
-                                        name="isCall"
-                                        checked={formData.isCall}
-                                        onChange={(e) =>
-                                            setFormData({ ...formData, isCall: e.target.checked })
-                                        }
-                                    />
-                                </label>
-                            </div>
-                            <ButtonWrapper>
-                                <CircleButton type="submit">Save</CircleButton>
-                                <CircleButton type="button" onClick={() => setShowForm(false)}>
-                                    Cancel
-                                </CircleButton>
-                            </ButtonWrapper>
-                        </form>
+                        {formType === 'contact' ? (
+                            <>
+                                <h2>Add Contact</h2>
+                                <form onSubmit={handleFormSubmit}>
+                                    <label>
+                                        Name:
+                                        <input
+                                            type="text"
+                                            name="name"
+                                            value={formData.name}
+                                            onChange={(e) =>
+                                                setFormData({ ...formData, name: e.target.value })
+                                            }
+                                            required
+                                        />
+                                    </label>
+                                    <label>
+                                        Phone Number:
+                                        <input
+                                            type="tel"
+                                            name="phone"
+                                            value={formData.phone}
+                                            onChange={(e) =>
+                                                setFormData({ ...formData, phone: e.target.value })
+                                            }
+                                            required
+                                        />
+                                    </label>
+                                    <div>
+                                        <label>
+                                            SMS
+                                            <input
+                                                type="radio"
+                                                name="isSms"
+                                                checked={formData.isSms}
+                                                onChange={(e) =>
+                                                    setFormData({ ...formData, isSms: e.target.checked })
+                                                }
+                                            />
+                                        </label>
+                                        <label>
+                                            Call
+                                            <input
+                                                type="radio"
+                                                name="isCall"
+                                                checked={formData.isCall}
+                                                onChange={(e) =>
+                                                    setFormData({ ...formData, isCall: e.target.checked })
+                                                }
+                                            />
+                                        </label>
+                                    </div>
+                                    <ButtonWrapper>
+                                        <CircleButton type="submit">Save</CircleButton>
+                                        <CircleButton type="button" onClick={() => setShowForm(false)}>
+                                            Cancel
+                                        </CircleButton>
+                                    </ButtonWrapper>
+                                </form>
+                            </>
+                        ) : formType === 'message' ? (
+                            <>
+                                <h2>Message</h2>
+                                <form onSubmit={handleFormSubmit}>
+                                    <label>
+                                        Message:
+                                        <textarea
+                                            name="message"
+                                            value={formData.message}
+                                            onChange={(e) =>
+                                                setFormData({ ...formData, message: e.target.value })
+                                            }
+                                            required
+                                        />
+                                    </label>
+                                    <ButtonWrapper>
+                                        <CircleButton type="submit">Send</CircleButton>
+                                        <CircleButton type="button" onClick={() => setShowForm(false)}>
+                                            Cancel
+                                        </CircleButton>
+                                    </ButtonWrapper>
+                                </form>
+                            </>
+                        ) : null}
                     </FormContainer>
                 </FormOverlay>
             )}
@@ -119,18 +161,19 @@ const Contacts = () => {
             <table>
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Number</th>
-                        <th>SMS</th>
-                        <th>Call</th>
-                        <th>Edit</th>
-                        <th>Delete</th>
+                        <th class="centerAlign">#</th>
+                        <th>Name /<br/> Number</th>
+                        <th class="centerAlign">SMS</th>
+                        <th class="centerAlign">Call</th>
+                        <th class="centerAlign">Edit</th>
+                        <th class="centerAlign">Delete</th>
                     </tr>
                 </thead>
                 <tbody>
                     {contacts.map((contact) => (
                         <tr key={contact.id}>
-                           <td>
+                            <td><span class="userBlock centerAlign"><i className="fa-solid fa-user"></i></span></td>
+                           <td class="boldTitle">
                                 {contact.isEditing ? (
                                     <input
                                         type="text"
@@ -142,8 +185,8 @@ const Contacts = () => {
                                 ) : (
                                     contact.name
                                 )}
-                            </td>
-                            <td>
+
+                                <br/>
                                 {contact.isEditing ? (
                                     <input
                                         type="tel"
@@ -156,7 +199,7 @@ const Contacts = () => {
                                     contact.phone
                                 )}
                             </td>
-                            <td>
+                            <td class="centerAlign">
                                 <input
                                     type="checkbox"
                                     name="isSms"
@@ -165,7 +208,7 @@ const Contacts = () => {
                                     onChange={(e) => handleInputChange(e, contact.id)}
                                 />
                             </td>
-                            <td>
+                            <td class="centerAlign">
                                 <input
                                     type="checkbox"
                                     name="isCall"
@@ -174,14 +217,16 @@ const Contacts = () => {
                                     onChange={(e) => handleInputChange(e, contact.id)}
                                 />
                             </td>
-                            <td>
+                            <td class="centerAlign">
                                 <i
                                     className={`fa-solid ${contact.isEditing ? "fa-save" : "fa-pen"}`}
                                     onClick={() => toggleEdit(contact.id)}
                                 ></i>
                             </td>
-                            <td>
-                                <i className="fa-solid fa-trash"></i>
+                            <td class="centerAlign">
+                                <i className="fa-solid fa-trash"
+                                    onClick={() => handleDelete(contact.id)}
+                                    ></i>
                             </td>
                         </tr>
                     ))}
@@ -258,7 +303,7 @@ const FormContainer = styled.div`
     color: #C30E59;
     padding: 20px 0 20px 20px;
   }
-  .addContact .fa-square-plus {
+  .addContact .fa-square-plus, .addContact .fa-edit {
     padding-right: 10px;
     font-size: 30px;
   }
@@ -267,13 +312,16 @@ const FormContainer = styled.div`
     vertical-align: top;
     margin-top: 10px;
   }
+    .addMessage {
+    float: left;
+    padding: 20px 20px 20px 0;
+    }
 
   table {
     font-family: arial, sans-serif;
     border-collapse: collapse;
     width: 100%;
   }
-
   td, th {
     border-bottom: 1px solid #ffffff;
     text-align: left;
@@ -285,6 +333,20 @@ const FormContainer = styled.div`
     background-color: #C30E59;
     font-variant: uppercase;
   }
+
+  .centerAlign {
+    text-align: center;
+  }
+.boldTitle {
+    font-weight: bold;
+}
+    .btn-success {
+    background-color: #C30E59;
+    border: none;
+    }
+    .btn-success: hover {
+    background-color: #E82561;
+    }
 
   tr:nth-child(even) {
     border-bottom: #C30E59;
