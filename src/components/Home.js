@@ -1,12 +1,120 @@
 import styled from "styled-components";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import db from "../firebase";
 import { selectUserName } from "../features/user/userSlice";
 
 const Home = (props) => {
   const dispatch = useDispatch();
   const userName = useSelector(selectUserName);
+  const [contact, setContact] = useState(null);
+  const [smsMessage, setSmsMessage] = useState(null);
+  const [location, setLocation] = useState(null);
+  const [isLiveCoordinates, setIsLiveCoordinates] = useState(() => {
+    const storedValue = localStorage.getItem('isLiveCoordinates');
+    return storedValue ? JSON.parse(storedValue) : false;
+  });
+
+  useEffect(() => {
+    fetchContactToCall();
+    fetchActiveMessage();
+    if (isLiveCoordinates) {
+      fetchLocation();
+    }
+  }, [isLiveCoordinates]);
+
+  const fetchContactToCall = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/contacts");
+      const data = await response.json();
+      const callContact = data.find(contact => contact.isCall === 1);
+      setContact(callContact);
+    } catch (error) {
+      console.error("Error fetching contacts:", error.message);
+    }
+  };
+
+  const fetchActiveMessage = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/customMessage");
+      const data = await response.json();
+      const activeMessage = data.find(message => message.isActive === 1);
+      setSmsMessage(activeMessage ? activeMessage.message : null);
+    } catch (error) {
+      console.error("Error fetching active message:", error.message);
+    }
+  };
+
+  const fetchLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          const location = await getLocationFromCoordinates(latitude, longitude);
+          setLocation(location);
+        },
+        (error) => {
+          console.error("Error getting location:", error.message);
+        }
+      );
+    } else {
+      console.error("Geolocation is not supported by this browser.");
+    }
+  };
+
+  const getLocationFromCoordinates = async (latitude, longitude) => {
+    const apiKey = ''; // Replace with your actual API key
+    const url = `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=${apiKey}`;
+
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      if (data.results && data.results.length > 0) {
+        return data.results[0].formatted;
+      } else {
+        return 'Location not found';
+      }
+    } catch (error) {
+      console.error("Error fetching location:", error.message);
+      return 'Location not available';
+    }
+  };
+
+  const handleCall = () => {
+    if (contact) {
+      const phoneNumber = contact.phone;
+      console.log(`Making a call to ${phoneNumber}`);
+      window.location.href = `tel:${phoneNumber}`;
+    } else {
+      console.error("No contact found to call.");
+    }
+  };
+
+  const handleSms = async () => {
+    if (smsMessage) {
+      try {
+        const response = await fetch("http://localhost:5000/contacts");
+        const contacts = await response.json();
+        const smsContacts = contacts.filter(contact => contact.isSms === 1);
+
+        if (smsContacts.length > 0) {
+          const phoneNumbers = smsContacts.map(contact => contact.phone).join(",");
+          const encodedMessage = isLiveCoordinates && location
+            ? `${smsMessage} Location: ${location}`
+            : smsMessage;
+          const smsLink = `sms:${phoneNumbers}?body=${encodeURIComponent(encodedMessage)}`;
+
+          console.log(`Sending SMS to ${phoneNumbers}: ${encodedMessage}`);
+          window.location.href = smsLink;
+        } else {
+          console.error("No contacts available to send SMS.");
+        }
+      } catch (error) {
+        console.error("Error sending SMS:", error.message);
+      }
+    } else {
+      console.error("No active message found to send.");
+    }
+  };
 
   return (
     <Container>
@@ -16,14 +124,15 @@ const Home = (props) => {
         <HeaderImage src="/images/Home-1.png" alt="Header Image" /><br/>
         <Description>Facing Some Issue? Want Help?</Description>
         <ButtonWrapper>
-          <CircleButton>SMS</CircleButton>
-          <CircleButton>CALL</CircleButton>
+          <CircleButton onClick={handleSms}>SMS</CircleButton>
+          <CircleButton onClick={handleCall}>CALL</CircleButton>
         </ButtonWrapper>
       </CTA>
       <br/><br/>
     </Container>
   );
 };
+
 
 const Container = styled.main`
   position: relative;

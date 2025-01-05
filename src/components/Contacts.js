@@ -33,7 +33,7 @@ const Contacts = () => {
         setContacts((prevContacts) =>
             prevContacts.map((contact) =>
                 contact.id === id
-                    ? { ...contact, [name]: type === "checkbox" ? checked : value }
+                    ? { ...contact, [name]: type === "checkbox" || type === "radio" ? checked : value }
                     : contact
             )
         );
@@ -170,7 +170,7 @@ const Contacts = () => {
                                         <label>
                                             SMS
                                             <input
-                                                type="radio"
+                                                type="checkbox"
                                                 name="isSms"
                                                 checked={formData.isSms}
                                                 onChange={(e) =>
@@ -278,7 +278,7 @@ const Contacts = () => {
                             </td>
                             <td class="centerAlign">
                                 <input
-                                    type="checkbox"
+                                    type="radio"
                                     name="isCall"
                                     checked={contact.isCall}
                                     disabled={!contact.isEditing}

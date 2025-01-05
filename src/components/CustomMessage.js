@@ -1,41 +1,131 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from "styled-components";
+import axios from "axios";
 
 const CustomMessage = () => {
-    const [contacts, setContacts] = useState([
-        { id: 1, message: "Hello, Friend 1!", active: true, isEditing: false },
-        { id: 2, message: "Hi, Friend 2!", active: false, isEditing: false },
-    ]);
-    
+    const [customMessage, setcustomMessage] = useState([]);
+    const [showForm, setShowForm] = useState(false);
+    // const [formType, setFormType] = useState('');  // New state to track form type
+    const [formData, setFormData] = useState({
+        message: "",
+        isActive: false,
+    });
+
     // State for toggle switch
-    const [isLiveCoordinates, setIsLiveCoordinates] = useState(false);
+    const [isLiveCoordinates, setIsLiveCoordinates] = useState(() => {
+        // Retrieve the stored value from localStorage, default to false if not found
+        return JSON.parse(localStorage.getItem('isLiveCoordinates')) || false;
+    });
+
+    useEffect(() => {
+        // Fetch custom messages from the backend when the component is mounted
+        fetch("http://localhost:5000/customMessage")
+            .then((response) => response.json())
+            .then((data) => {
+                // Map over the data to ensure active is a boolean
+                const formattedData = data.map(customMessage => ({
+                    ...customMessage,
+                    active: customMessage.active === "true" || customMessage.active === true, // Convert to boolean
+                }));
+                setcustomMessage(formattedData);  // Set the fetched data in the state
+            })
+            .catch((error) => console.error("Error fetching custom messages:", error));
+    }, []);  // Empty dependency array means it runs once when the component is mounted
 
     const handleInputChange = (e, id) => {
         const { name, value, type, checked } = e.target;
-        setContacts((prevContacts) =>
-            prevContacts.map((contact) =>
-                contact.id === id
-                    ? { ...contact, [name]: type === "checkbox" || type === "radio" ? checked : value }
-                    : contact
+        setcustomMessage((prevcustomMessage) =>
+            prevcustomMessage.map((customMessage) =>
+                customMessage.id === id
+                    ? { 
+                        ...customMessage, 
+                        [name]: type === "checkbox" || type === "radio" ? checked : value
+                    }
+                    : customMessage
             )
         );
     };
 
     const toggleEdit = (id) => {
-        setContacts((prevContacts) =>
-            prevContacts.map((contact) =>
-                contact.id === id ? { ...contact, isEditing: !contact.isEditing } : contact
+        setcustomMessage((prevcustomMessage) =>
+            prevcustomMessage.map((customMessage) =>
+                customMessage.id === id ? { ...customMessage, isEditing: !customMessage.isEditing } : customMessage
             )
         );
     };
 
-    const handleDelete = (id) => {
-        setContacts((prevContacts) => prevContacts.filter((contact) => contact.id !== id));
+    const handleSave = async (customMessage) => {
+        try {
+            const { id, message, isActive } = customMessage;
+            
+            console.log("Sending PUT request with data:", { message, isActive });
+    
+            const response = await axios.put(`http://localhost:5000/customMessage/${id}`, {
+                message,
+                isActive
+            });
+    
+            if (response.status === 200) {
+                alert("Message updated successfully!");
+                setcustomMessage((prevcustomMessage) =>
+                    prevcustomMessage.map((messageItem) =>
+                        messageItem.id === id
+                            ? { ...messageItem, isEditing: false, message, isActive }
+                            : messageItem
+                    )
+                );
+            } else {
+                alert("Error updating message.");
+            }
+        } catch (error) {
+            console.error("Failed to update message:", error);
+            alert("Error updating message.");
+        }
+    };
+
+    const handleDelete = async (id) => {
+        try {
+            await axios.delete(`http://localhost:5000/customMessage/${id}`);
+            setcustomMessage((prevcustomMessage) => prevcustomMessage.filter((customMessage) => customMessage.id !== id));
+            alert("Message deleted successfully!");
+        } catch (error) {
+            console.error("Failed to delete Message:", error);
+        }
+    };
+
+    const handleFormInputChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData((prevFormData) => ({
+            ...prevFormData,
+            [name]: type === "checkbox" ? checked : value
+        }));
+    };
+
+    const handleFormSubmit = async (e) => {
+        e.preventDefault();
+
+        try {
+            const response = await axios.post("http://localhost:5000/add-message", formData);
+            
+                alert("Message added successfully!");
+                setcustomMessage((prevcustomMessage) => [...prevcustomMessage, response.data]);
+                setShowForm(false);  // Close the form after successful submission
+                setFormData({ message: "", isActive: false });  // Clear the form data
+           
+        } catch (error) {
+            console.error("Failed to add message:", error);
+            alert("Error adding message.");
+        }
     };
 
     // Toggle function for live coordinates
     const handleLiveCoordinatesToggle = () => {
-        setIsLiveCoordinates((prev) => !prev);
+        setIsLiveCoordinates((prev) => {
+            const newState = !prev;
+            // Store the new state in localStorage
+            localStorage.setItem('isLiveCoordinates', JSON.stringify(newState));
+            return newState;
+        });
     };
 
     return (
@@ -57,6 +147,39 @@ const CustomMessage = () => {
                 </ToggleSwitch>
             </LiveCoordinatesWrapper>
 
+            {/* Button to open the form */}
+            <AddButton onClick={() => setShowForm(true)}>Add New Message</AddButton>
+
+            {/* Popup Form */}
+            {showForm && (
+                <FormWrapper>
+                    <h2>Add New Message</h2>
+                    <form onSubmit={handleFormSubmit}>
+                        <label>
+                            Message:
+                            <input
+                                type="text"
+                                name="message"
+                                value={formData.message}
+                                onChange={handleFormInputChange}
+                                required
+                            />
+                        </label>
+                        <label>
+                            Active:
+                            <input
+                                type="checkbox"
+                                name="isActive"
+                                checked={formData.isActive}
+                                onChange={handleFormInputChange}
+                            />
+                        </label>
+                        <button type="submit">Submit</button>
+                        <button type="button" onClick={() => setShowForm(false)}>Cancel</button>
+                    </form>
+                </FormWrapper>
+            )}
+
             <table>
                 <thead>
                     <tr>
@@ -68,45 +191,52 @@ const CustomMessage = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    {contacts.map((contact) => (
-                        <tr key={contact.id}>
+                    {customMessage.map((customMessage) => (
+                        <tr key={customMessage.id}>
                             <td className="centerAlign">
                                 <span className="userBlock centerAlign">
                                     <i className="fa-solid fa-user"></i>
                                 </span>
                             </td>
                             <td className="boldTitle">
-                                {contact.isEditing ? (
+                                {customMessage.isEditing ? (
                                     <input
                                         type="text"
                                         name="message"
-                                        value={contact.message}
-                                        className={contact.isEditing ? "editing" : ""}
-                                        onChange={(e) => handleInputChange(e, contact.id)}
+                                        value={customMessage.message}
+                                        className={customMessage.isEditing ? "editing" : ""}
+                                        onChange={(e) => handleInputChange(e, customMessage.id)}
                                     />
                                 ) : (
-                                    contact.message
+                                    customMessage.message
                                 )}
                             </td>
                             <td className="centerAlign">
                                 <input
                                     type="radio"
-                                    name="active"
-                                    checked={contact.active}
-                                    disabled={!contact.isEditing}
-                                    onChange={(e) => handleInputChange(e, contact.id)}
+                                    name="isActive"
+                                    checked={customMessage.isActive}  // This will now work as `active` is a boolean
+                                    disabled={!customMessage.isEditing}
+                                    onChange={(e) => handleInputChange(e, customMessage.id)}
                                 />
                             </td>
                             <td className="centerAlign">
-                                <i
-                                    className={`fa-solid ${contact.isEditing ? "fa-save" : "fa-pen"}`}
-                                    onClick={() => toggleEdit(contact.id)}
-                                ></i>
+                                {customMessage.isEditing ? (
+                                            <i
+                                                className="fa-solid fa-save"
+                                                onClick={() => handleSave(customMessage)}
+                                            ></i>
+                                        ) : (
+                                            <i
+                                                className="fa-solid fa-pen"
+                                                onClick={() => toggleEdit(customMessage.id)}
+                                            ></i>
+                                    )}
                             </td>
                             <td className="centerAlign">
                                 <i
                                     className="fa-solid fa-trash"
-                                    onClick={() => handleDelete(contact.id)}
+                                    onClick={() => handleDelete(customMessage.id)}
                                 ></i>
                             </td>
                         </tr>
@@ -247,6 +377,64 @@ const Description = styled.p`
   margin: 0 0 24px;
   line-height: 1.5;
   font-weight: bold;
+`;
+
+// Styles for the form popup
+const FormWrapper = styled.div`
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+
+  h2 {
+    margin-bottom: 20px;
+    color: #C30E59;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+
+    label {
+      margin-bottom: 10px;
+    }
+
+    input {
+      padding: 10px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    button {
+      padding: 10px;
+      background-color: #C30E59;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button[type="button"] {
+      background-color: #ccc;
+    }
+  }
+`;
+
+const AddButton = styled.button`
+  padding: 10px 20px;
+  background-color: #C30E59;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 20px 0;
 `;
 
 export default CustomMessage;
