@@ -67,7 +67,7 @@ const Home = (props) => {
   };
 
   const getLocationFromCoordinates = async (latitude, longitude) => {
-    const apiKey = '85ae6dafe4d9418d8cb4fa5601e82d33'; // Replace with your actual API key
+    const apiKey = ''; // Replace with your actual API key
     const url = `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=${apiKey}`;
 
     try {
