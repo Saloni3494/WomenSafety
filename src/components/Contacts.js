@@ -1,11 +1,14 @@
 import axios from "axios";
 import React, { useState, useEffect } from 'react';
 import styled from "styled-components";
+import Alert from 'react-bootstrap/Alert';
 
 const Contacts = () => {
     const [contacts, setContacts] = useState([]);
     const [showForm, setShowForm] = useState(false);
     const [formType, setFormType] = useState('');  // New state to track form type
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertMessage, setAlertMessage] = useState("");
     const [formData, setFormData] = useState({
         name: "",
         phone: "",
@@ -13,6 +16,7 @@ const Contacts = () => {
         isCall: false,
         message: "", // For the message form
     });
+
 
      // Fetch contacts from the backend
      useEffect(() => {
@@ -62,7 +66,8 @@ const Contacts = () => {
             });
     
             if (response.status === 200) {
-                alert("Contact updated successfully!");
+                setAlertMessage("Contact Updated Successfully!");
+                setAlertVisible(true);
                 setContacts((prevContacts) =>
                     prevContacts.map((contactItem) =>
                         contactItem.id === id
@@ -99,6 +104,8 @@ const Contacts = () => {
                 message: "",
             });
             setShowForm(false);
+            setAlertMessage("Contact Added Successfully!");
+            setAlertVisible(true);
         } catch (error) {
             console.error("Failed to add contact:", error);
         }
@@ -108,7 +115,8 @@ const Contacts = () => {
         try {
             await axios.delete(`http://localhost:5000/contacts/${id}`);
             setContacts((prevContacts) => prevContacts.filter((contact) => contact.id !== id));
-            alert("Contact deleted successfully!");
+            setAlertMessage("Contact Deleted Successfully!");
+            setAlertVisible(true);
         } catch (error) {
             console.error("Failed to delete contact:", error);
         }
@@ -119,13 +127,19 @@ const Contacts = () => {
             <CTA>
                 <Description>Emergency Contacts</Description>
                 <HeaderImage src="/images/contacts-1.png" alt="Header Image" />
+                {alertVisible && (
+                <Alert variant="danger" onClose={() => setAlertVisible(false)} dismissible>
+                <Alert.Heading>Success</Alert.Heading>
+                <p>{alertMessage}</p>
+                </Alert>
+                )}
             </CTA>
 
             <div className="addContact addMessage" onClick={() => { setShowForm(true); setFormType('message'); }}>
-                <button type="button" class="btn btn-success">
+                {/* <button type="button" class="btn btn-success">
                     <i className="fa-solid fa-edit"></i>
                     <span className="contactLabel boldTitle">Message</span>
-                </button>
+                </button> */}
             </div>
 
             <div className="addContact" onClick={() => { setShowForm(true); setFormType('contact'); }}>

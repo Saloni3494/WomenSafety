@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import styled from "styled-components";
 import axios from "axios";
+import Alert from 'react-bootstrap/Alert';
 
 const CustomMessage = () => {
     const [customMessage, setcustomMessage] = useState([]);
     const [showForm, setShowForm] = useState(false);
-    // const [formType, setFormType] = useState('');  // New state to track form type
+    const [alertVisible, setAlertVisible] = useState(false);
+    const [alertMessage, setAlertMessage] = useState("");
     const [formData, setFormData] = useState({
         message: "",
         isActive: false,
@@ -66,7 +68,8 @@ const CustomMessage = () => {
             });
     
             if (response.status === 200) {
-                alert("Message updated successfully!");
+                setAlertMessage("Custom Message updated Successfully!");
+                setAlertVisible(true);
                 setcustomMessage((prevcustomMessage) =>
                     prevcustomMessage.map((messageItem) =>
                         messageItem.id === id
@@ -87,7 +90,8 @@ const CustomMessage = () => {
         try {
             await axios.delete(`http://localhost:5000/customMessage/${id}`);
             setcustomMessage((prevcustomMessage) => prevcustomMessage.filter((customMessage) => customMessage.id !== id));
-            alert("Message deleted successfully!");
+            setAlertMessage("Custom Message deleted Successfully!");
+            setAlertVisible(true);
         } catch (error) {
             console.error("Failed to delete Message:", error);
         }
@@ -107,7 +111,8 @@ const CustomMessage = () => {
         try {
             const response = await axios.post("http://localhost:5000/add-message", formData);
             
-                alert("Message added successfully!");
+                setAlertMessage("Custom Message added Successfully!");
+                setAlertVisible(true);
                 setcustomMessage((prevcustomMessage) => [...prevcustomMessage, response.data]);
                 setShowForm(false);  // Close the form after successful submission
                 setFormData({ message: "", isActive: false });  // Clear the form data
@@ -147,8 +152,17 @@ const CustomMessage = () => {
                 </ToggleSwitch>
             </LiveCoordinatesWrapper>
 
+            {alertVisible && (
+                <Alert variant="danger" onClose={() => setAlertVisible(false)} dismissible>
+                <Alert.Heading>Error</Alert.Heading>
+                <p>{alertMessage}</p>
+                </Alert>
+            )}
+
             {/* Button to open the form */}
-            <AddButton onClick={() => setShowForm(true)}>Add New Message</AddButton>
+            
+                <AddButton onClick={() => setShowForm(true)}> Add New Message</AddButton>
+           
 
             {/* Popup Form */}
             {showForm && (

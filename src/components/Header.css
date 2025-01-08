@@ -99,7 +99,7 @@ ul li {
   border-bottom: 3px solid white;
 }
 
-ul li:hover, ul li:active {
+ul li:hover, .nav__link.active {
   color: white;
 }
 

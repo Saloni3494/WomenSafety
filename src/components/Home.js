@@ -2,6 +2,8 @@ import styled from "styled-components";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { selectUserName } from "../features/user/userSlice";
+import Alert from 'react-bootstrap/Alert';
+
 
 const Home = (props) => {
   const dispatch = useDispatch();
@@ -9,6 +11,9 @@ const Home = (props) => {
   const [contact, setContact] = useState(null);
   const [smsMessage, setSmsMessage] = useState(null);
   const [location, setLocation] = useState(null);
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+
   const [isLiveCoordinates, setIsLiveCoordinates] = useState(() => {
     const storedValue = localStorage.getItem('isLiveCoordinates');
     return storedValue ? JSON.parse(storedValue) : false;
@@ -62,7 +67,7 @@ const Home = (props) => {
   };
 
   const getLocationFromCoordinates = async (latitude, longitude) => {
-    const apiKey = ''; // Replace with your actual API key
+    const apiKey = '85ae6dafe4d9418d8cb4fa5601e82d33'; // Replace with your actual API key
     const url = `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=${apiKey}`;
 
     try {
@@ -80,14 +85,15 @@ const Home = (props) => {
   };
 
   const handleCall = () => {
-    if (contact) {
-      const phoneNumber = contact.phone;
-      console.log(`Making a call to ${phoneNumber}`);
-      window.location.href = `tel:${phoneNumber}`;
-    } else {
-      console.error("No contact found to call.");
-    }
-  };
+  if (contact) {
+    const phoneNumber = contact.phone;
+    console.log(`Making a call to ${phoneNumber}`);
+    window.location.href = `tel:${phoneNumber}`;
+  } else {
+    setAlertMessage("No contact available for emergency calling.");
+    setAlertVisible(true);
+  }
+};
 
   const handleSms = async () => {
     if (smsMessage) {
@@ -106,18 +112,27 @@ const Home = (props) => {
           console.log(`Sending SMS to ${phoneNumbers}: ${encodedMessage}`);
           window.location.href = smsLink;
         } else {
-          console.error("No contacts available to send SMS.");
+          setAlertMessage("No contacts available to send SMS.");
+          setAlertVisible(true);
         }
       } catch (error) {
         console.error("Error sending SMS:", error.message);
       }
     } else {
-      console.error("No active message found to send.");
+        setAlertMessage("No active message found to send.");
+        setAlertVisible(true);
     }
   };
 
   return (
     <Container>
+      <br/>
+      {alertVisible && (
+        <Alert variant="danger" onClose={() => setAlertVisible(false)} dismissible>
+          <Alert.Heading>Error</Alert.Heading>
+          <p>{alertMessage}</p>
+        </Alert>
+      )}
       <CTA>
         <Description>Welcome to</Description>
         <SignUp>Empower Shield</SignUp>

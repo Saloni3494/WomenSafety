@@ -20,3 +20,6 @@ import 'bootstrap/dist/css/bootstrap.css';
 
 // npm install --save-dev @fortawesome/fontawesome-free
 import '@fortawesome/fontawesome-free/css/all.min.css';
+
+import 'bootstrap/dist/css/bootstrap.min.css';
+
